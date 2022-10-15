@@ -10,6 +10,7 @@ from CommandlineOsdag.design_type_v2.connection.fin_plate_connection import FinP
 
 from Common import *
 from utils.common.other_standards import PATH_TO_DATABASE
+import pandas as pd
 colorama.init(autoreset=True)
 class FinPlate(FinPlateConnection):
     def __init__(self,**kwargs):
@@ -26,6 +27,13 @@ class FinPlate(FinPlateConnection):
 
         self.set_inputs()
         self.output()
+    def workbook(self):
+        import pandas as pd
+
+        df = pd.read_excel("inputStructure.xlsx")
+        df = pd.DataFrame(df)
+        self.design_dict['']
+        print(df["Connectivity"][2])
 
     def set_factored_loads(self):
 
