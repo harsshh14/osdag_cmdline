@@ -1,5 +1,8 @@
 from CommandlineOsdag.FinPlate import FinPlate
 from CommandlineOsdag.EndPlate import EndPlate
+
+from CommandlineOsdag.ColumnCoverPlate import BeamCoverPlateBolted
+from CommandlineOsdag.excel_based import Workbook
 from design_type.compression_member.compression import Compression
 from design_type.connection.column_cover_plate import ColumnCoverPlate
 from design_type.connection.column_end_plate import ColumnEndPlate
@@ -22,7 +25,14 @@ colorama.init(autoreset=True)
 
 class Osdag():
     def __init__(self):
-        self.select_module()
+        print(Fore.CYAN+"1. Enter Inputs")
+        print(Fore.CYAN+"2. Read from CSV/Excel")
+        if(int(input())==1):
+            self.select_module()
+        else:
+
+            path = r"C:\Users\sagar\OneDrive\Desktop\fin_platedesign.xlsx"
+            Workbook(path)
     def select_module(self):
         all_modules = {'Base Plate': BasePlateConnection, 'Beam Coverplate  Weld Connection': BeamCoverPlateWeld,
                        'Beam Coverplate Connection': BeamCoverPlate,
@@ -44,7 +54,7 @@ class Osdag():
                             'Tension Members Bolted Design': Tension_bolted,
                             'Tension Members Welded Design': Tension_welded, 'Compression Member': Compression,
                             }
-        available_module_in_cmd = {'Fin Plate': FinPlate, 'End Plate': EndPlate}
+        available_module_in_cmd = {'Fin Plate': FinPlate, 'End Plate': EndPlate,'Beam Cover Plate (Bolted)': BeamCoverPlateBolted}
         print(Fore.GREEN+ 'Available Modules are: ')
         i=1
         for key in available_module_in_cmd:
@@ -54,10 +64,12 @@ class Osdag():
         module_no = input()
         if module_no=='1':
             module_name = 'Fin Plate'
-            FinPlate()
+            FinPlate(1)
         elif module_no=='2':
             module_name = 'End Plate'
             EndPlate()
+        elif module_no=='3':
+            BeamCoverPlateBolted(1)
         else:
             print(Fore.RED+ 'Invalid Module')
             return self.select_module()

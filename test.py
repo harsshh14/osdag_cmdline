@@ -1,0 +1,2 @@
+from CommandlineOsdag.ColumnCoverPlate import ColumnCoverPlateBolted
+ColumnCoverPlateBolted(1)

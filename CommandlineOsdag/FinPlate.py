@@ -2,7 +2,6 @@ import logging
 import sys
 
 import yaml
-
 import prettytable
 import colorama
 from colorama import Fore
@@ -13,35 +12,58 @@ from utils.common.other_standards import PATH_TO_DATABASE
 import pandas as pd
 colorama.init(autoreset=True)
 class FinPlate(FinPlateConnection):
-    def __init__(self,**kwargs):
+    def __init__(self,flag,series:pd.Series=None,**kwargs):
         super().__init__()
-        self.design_dict={}
-
-        self.design_pref_inputs={}
+        self.design_dict = {}
+        self.design_pref_inputs = {}
         self.design_pref()
         self.input_dock_inputs = self.input_values()
-        # self.designPrefDialog = DesignPreferences(input_dictionary=self.input_dock_inputs)
+        if flag:
+            self.input()
+            self.set_inputs()
+            self.output()
+        else:
+            self.connectivity=getConnectivty(series)
+            self.material=getMaterial(series)
+            self.BeamSection = getSupportedSectionDesignation(series)
+            self.ColumnSection=getSupportingSectionDesignation(series)
+            self.axial_force=getAxial(series)
+            self.sherd_loads=getShear(series)
+            self.bolt_diameter=getBoltDiameter(series)
+            self.bolt_type=getBoltType(series)
+            self.bolt_grade=getGrade(series)
+            self.plate_thickness=getConnectorPlate(series)
+            self.setConnectivty()
+            self.setMemberSupportingDesignation()
+            self.setmembersupportedDesignation()
+            self.setPlateThickness()
+            self.setConnectorPlateThickness()
+            self.setShear()
+            self.setAxial()
+            self.setMaterial()
+            self.setBoltGrade()
+            self.setBoltType()
+            self.setBoltDiameter()
+            for val in self.design_dict:
+                if type(self.design_dict[val])!=list:
+                    self.design_dict[val] = str(self.design_dict[val])
+            self.set_inputs()
 
-        self.input()
-        # fin.show_design_dict()
 
-        self.set_inputs()
-        self.output()
-    def workbook(self):
-        import pandas as pd
-
-        df = pd.read_excel("inputStructure.xlsx")
-        df = pd.DataFrame(df)
-        self.design_dict['']
-        print(df["Connectivity"][2])
 
     def set_factored_loads(self):
 
 
         self.sherd_loads = input("Enter Shear Load")
-        self.design_dict['Load.Shear'] = self.sherd_loads
+        self.setShear()
         self.axial_force = input("Enter Axial Force")
+        self.setAxial()
+
+    def setAxial(self):
         self.design_dict['Load.Axial'] = self.axial_force
+
+    def setShear(self):
+        self.design_dict['Load.Shear'] = self.sherd_loads
 
     def set_bolt(self):
         print()
@@ -59,10 +81,10 @@ class FinPlate(FinPlateConnection):
             bolt_type = input(Fore.BLUE+'Enter Bolt Type: ')
             if bolt_type == '1':
                 self.bolt_type = 'Bearing Bolt'
-                self.design_dict['Bolt.Type'] = self.bolt_type
+                self.setBoltType()
             elif bolt_type == '2':
                 self.bolt_type = 'Friction Grip Bolt'
-                self.design_dict['Bolt.Type'] = self.bolt_type
+                self.setBoltType()
 
             else:
                 colorama.colorama_text('Invalid Input')
@@ -85,7 +107,7 @@ class FinPlate(FinPlateConnection):
             bolt_diameter = list(input(Fore.BLUE+'Enter Bolt Diameter: ').split())
             if bolt_diameter[0] == 'All' or bolt_diameter[0] == 'all':
                 self.bolt_diameter = 'All'
-                self.design_dict['Bolt.Diameter'] = self.bolt_diameter
+                self.setBoltDiameter()
 
             else:
                 for bolt in bolt_diameter:
@@ -94,7 +116,7 @@ class FinPlate(FinPlateConnection):
                         self.set_bolt()
                         break
                 self.bolt_diameter = bolt_diameter
-                self.design_dict['Bolt.Diameter'] = bolt_diameter
+                self.setBoltDiameter()
                 print(Fore.YELLOW+'', *bolt_diameter)
             self.set_bolt()
             return
@@ -105,7 +127,7 @@ class FinPlate(FinPlateConnection):
             bolt_grade = list(input(Fore.BLUE+'Enter Bolt Grade: ').split())
             if bolt_grade[0] in ["all",'All']:
                 self.bolt_grade = 'All'
-                self.design_dict['Bolt.Grade'] = self.bolt_grade
+                self.setBoltGrade()
 
             else:
                 for grade in bolt_grade:
@@ -118,17 +140,40 @@ class FinPlate(FinPlateConnection):
                 x = prettytable.PrettyTable(['Bolt Grade'])
                 x.add_rows([[grade] for grade in bolt_grade])
                 print(Fore.YELLOW+'',x)
-                self.design_dict['Bolt.Grade'] = bolt_grade
+                self.setBoltGrade()
             self.set_bolt()
             return
 
+    def setBoltGrade(self):
+        if type(self.bolt_grade)==list:
+            self.design_dict['Bolt.Grade']=self.bolt_grade
+        else:
+
+            self.design_dict['Bolt.Grade'] = [str(self.bolt_grade)]
+
+    def setBoltDiameter(self ):
+        if type(self.bolt_diameter)==list:
+            self.design_dict['Bolt.Diameter'] = self.bolt_diameter
+        else:
+            self.design_dict['Bolt.Diameter'] = [str(self.bolt_diameter)]
+
+    def setBoltType(self):
+        self.design_dict['Bolt.Type'] = self.bolt_type
+
+    def removeTuple(self,s):
+        return s[0]
     def set_plate(self, plate_thickness='All'):
         print(PLATE_THICKNESS_SAIL)
         print(Fore.GREEN+"Enter Plate Thickness (If want to select all, enter 'All', else enter them in space separated manner)")
         plate_thickness = list(input(Fore.BLUE+'Enter Plate Thickness: ').split())
         if plate_thickness[0] == 'All' or plate_thickness[0] == 'all':
-            self.plate_thickness = 'All'
-            self.design_dict['Plate.Thickness'] = self.plate_thickness
+            self.plate_thickness = plate_thickness
+
+            def removeTuple(s):
+                return s[0]
+
+            self.setPlateThickness()
+            self.setConnectorPlateThickness()
 
         else:
             for thickness in plate_thickness:
@@ -137,8 +182,17 @@ class FinPlate(FinPlateConnection):
                     self.set_plate()
                     return
             self.plate_thickness = plate_thickness
-            self.design_dict['Connector.Plate.Thickness_List'] = self.plate_thickness
+            self.setConnectorPlateThickness()
+            self.setPlateThickness()
 
+    def setConnectorPlateThickness(self):
+
+        self.design_dict['Connector.Plate.Thickness_List'] = [str(self.plate_thickness)]
+
+
+
+    def setPlateThickness(self):
+        self.design_dict['Plate.Thickness_List'] = self.plate_thickness
     def design_pref(self):
         option_list = self.input_values()
         new_list = self.customized_input()
@@ -462,7 +516,7 @@ class FinPlate(FinPlateConnection):
         conn = input('Enter Connectivity: ')
         if conn == '1':
             self.connectivity = CONN_CFBW
-            self.design_dict['Connectivity'] = self.connectivity
+            self.setConnectivty()
 
             while True:
                 try:
@@ -477,7 +531,7 @@ class FinPlate(FinPlateConnection):
         elif conn == '2':
 
             self.connectivity = CONN_CFBW
-            self.design_dict['Connectivity'] = self.connectivity
+            self.setConnectivty()
 
             while True:
                 try:
@@ -489,7 +543,7 @@ class FinPlate(FinPlateConnection):
                     continue
         elif conn == '3':
             self.connectivity = CONN_BB
-            self.design_dict['Connectivity'] = self.connectivity
+            self.setConnectivty()
 
             while True:
                 try:
@@ -502,10 +556,23 @@ class FinPlate(FinPlateConnection):
         else:
             print(Fore.RED+'Please enter valid inputs')
             self.input()
-        self.design_dict['Member.Supporting_Section.Designation'] = self.ColumnSection
-        self.design_dict['Member.Supported_Section.Designation']= self.BeamSection
-        self.design_dict['Material'] = self.material
+        self.setMemberSupportingDesignation()
+        self.setmembersupportedDesignation()
+        self.setMaterial()
         # Connectivity Column Flange-Beam Web
+
+    def setMaterial(self):
+        self.design_dict['Material'] = self.material
+
+    def setmembersupportedDesignation(self):
+        self.design_dict['Member.Supported_Section.Designation'] = self.BeamSection
+
+    def setMemberSupportingDesignation(self):
+        self.design_dict['Member.Supporting_Section.Designation'] = self.ColumnSection
+
+    def setConnectivty(self):
+        self.design_dict['Connectivity'] = self.connectivity
+
     def input_beam(self,flag):
         if flag==0: #primary beam / default
             conn = sqlite3.connect(PATH_TO_DATABASE)
@@ -595,7 +662,7 @@ class FinPlate(FinPlateConnection):
                 if i[0] == material_id:
                     self.material = i[1]
                     break
-        self.design_dict['Material']= self.material
+        self.setMaterial()
         print(Fore.YELLOW+self.material)
         cursor.close()
 
@@ -633,12 +700,15 @@ class FinPlate(FinPlateConnection):
         print(Fore.GREEN + '4.', 'Show Design Dictionary')
         print(Fore.GREEN + '5.', 'Exit')
         output = input(Fore.BLUE + 'Enter Output: ')
+        print(output)
         if output == '1':
             self.show_output()
             self.output()
             return
         elif output == '2':
-            self.save_design_report()
+            popup_summary = self.save_design_report()
+            self.save_design(popup_summary)
+
             self.output()
             return
         elif output == '3':
@@ -648,6 +718,8 @@ class FinPlate(FinPlateConnection):
         elif output == '4':
             self.show_design_dict()
             self.output()
+            return
+        elif output=='5':
             return
         else:
             print(Fore.RED + 'Invalid Input')
@@ -662,6 +734,11 @@ class FinPlate(FinPlateConnection):
             elif output[2]=='TextBox':
                 tabu.add_row([Fore.YELLOW+str(output[1]),Fore.YELLOW+str(output[3])])
         print(tabu)
+    def return_output(self):
+        outputs= self.output_values(self.design_status)
+        print(outputs)
+        output_series = pd.Series(outputs)
+        return output_series
     def save_design_report(self):
         popup_summary={}
         print(Fore.MAGENTA+"------------Save Design Report------------")
@@ -704,7 +781,128 @@ class FinPlate(FinPlateConnection):
         popup_summary['filename']=filename
         popup_summary['does_design_exist']=self.design_status
         popup_summary['logger_messages']=''
+        return popup_summary
 
-        self.save_design(popup_summary)
 
 
+
+def getModule(series):
+    return series['Module'][0]
+def read_series(self,series):
+    diction = {}
+    if getModule(series)=='FinPlate':
+        diction['Module']='Fin Plate Connection'
+#  create design dictionary
+def getConnectivty(series: pd.Series):
+    return series['Connectivity'][0]
+
+def getEndPlateType(self,series: pd.Series):
+    return series['EndPlateType'][0]
+
+def getConnectionLocation(self,series: pd.Series):
+    return series['Connection Location'][0]
+
+def getMaterial(series: pd.Series):
+    return series['Material'][0]
+
+def getDesignation(series):
+    return series['Member']['Section Size'][0]
+
+def getSupportingSectionDesignation(series):
+    return series['Member']['Column Section / Primary Beam']['Designation']
+
+def getSupportingSectionMaterial(series):
+    return series['Member']['Column Section / Primary Beam']['Material'][0]
+
+def getSupportedSectionDesignation(series):
+    return series['Member']['Beam Section / Secondary Beam']['Designation']
+
+def getSupportedSectionMaterial(series):
+    return series['Member']['Beam Section / Secondary Beam']['Material'][0]
+
+def getLength(series):
+    return series['Member']['Length'][0]
+
+def getProfile(series):
+    return series['Member']['Profile'][0]
+
+def getLength_zz(series):
+    return series['Member']['Length_zz'][0]
+
+def getLength_yy(series):
+    return series['Member']['Length_yy'][0]
+
+def getShear(series):
+    return series['Load']['Shear (kN)'][0]
+
+def getAxial(series):
+    return series['Load']['Axial (kN)'][0]
+
+def getMoment(series):
+    return series['Load']['Moment (kN)'][0]
+
+def getBoltDiameter(series):
+    return series['Bolt']['Available Diameters (mm)'][0]
+
+def getBoltType(series):
+    return series['Bolt']['Type'][0]
+
+def getGrade(series):
+    return series['Bolt']['Grade'][0]
+
+def getBolt_Hole_Type(series):
+    return series['Bolt']['Bolt_Hole_Type'][0]
+
+def getSlip_Factor(series):
+    return series['Bolt']['Slip_Factor'][0]
+
+def isPreTensed(series):
+    return series['Bolt']['Is pre-tensioned'][0]
+
+def getConnectorMaterial(series):
+    return series['Connector']['Material'][0]
+
+def getConnectorPlate(series):
+    return series['Connector']['Plate'][0]
+
+def getConnectorFlange(series):
+    return series['Connector']['Flang_Splice'][0]
+
+def getConnectorWeb(series):
+    return series['Connector']['Web_Splice'][0]
+
+def getConnectorTopAngle(series):
+    return series['Connector']['Top_Angle'][0]
+
+def getWeldType(series):
+    return series['Weld']['Type'][0]
+
+def getWeldFab(series):
+    return series['Weld']['Fab'][0]
+
+def getWeldMaterial_gradeOverwrite(series):
+    return series['Weld']['Material_Grade_Overwrite'][0]
+
+def getDetailingCorrosive_Influences(series):
+    return series['Detailing']['Corrosive_Influences'][0]
+
+def getDetailingEdge_Type(series):
+    return series['Detailing']['Edge_Type'][0]
+
+def getDetailingGap(series):
+    return series['Detailing']['Gap'][0]
+
+def getDesignMethod(series):
+    return series['Design']['Design_Method'][0]
+
+def supportConditionsEnd1ZZ(series):
+    return series['Support conditions']['End 1-ZZ'][0]
+
+def supportConditionsEnd2ZZ(series):
+    return series['Support conditions']['End 2-ZZ'][0]
+
+def supportConditionsEnd1YY(series):
+    return series['Support conditions']['End 1-YY'][0]
+
+def supportConditionsEndYY(series):
+    return series['Support conditions']['End 2-YY'][0]
