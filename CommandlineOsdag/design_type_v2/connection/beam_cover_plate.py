@@ -2649,6 +2649,7 @@ class BeamCoverPlate(MomentConnection):
 
         """
 
+
         self.flange_crs_sec_area = tk * width
         self.Ap = self.flange_crs_sec_area * 1.05
         # self.design_status = True

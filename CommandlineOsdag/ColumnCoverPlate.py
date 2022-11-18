@@ -17,9 +17,9 @@ from Common import *
 
 from CommandlineOsdag.design_type_v2.connection.column_cover_plate import ColumnCoverPlate
 from CommandlineOsdag.design_type_v2.connection.beam_cover_plate import BeamCoverPlate
-
+from CommandlineOsdag.common_fn import *
 class BeamCoverPlateBolted(BeamCoverPlate):
-    def __init__(self,flag):
+    def __init__(self,flag,series=None):
         super().__init__()
         self.design_dict = {}
         self.design_pref_inputs = {}
@@ -29,6 +29,25 @@ class BeamCoverPlateBolted(BeamCoverPlate):
             self.enterInputs()
             self.set_inputs()
             self.output()
+        else:
+            self.design_dict['Module'] = 'Beam-to-Beam Cover Plate Bolted Connection'
+            self.design_dict[KEY_SECSIZE] = getDesignation(series)
+            self.design_dict[KEY_MATERIAL] = getMaterial(series)
+            self.design_dict[KEY_SHEAR] = getShear(series)
+            self.design_dict[KEY_AXIAL] = getAxial(series)
+            self.design_dict[KEY_MOMENT] = getMoment(series)
+            self.design_dict['Bolt.Diameter'] = getBoltDiameter(series)
+
+            self.design_dict['Bolt.Type'] = getBoltType(series)
+            self.design_dict['Bolt.Grade'] = getGrade(series)
+
+            self.design_dict[KEY_FLANGEPLATE_PREFERENCES] = getConnectorFlangePrefernce(series)
+            self.design_dict[KEY_FLANGEPLATE_THICKNESS]=getConnectorFlangeThickness(series)
+            self.design_dict[KEY_WEBPLATE_THICKNESS]=getConnectorWeb(series)
+            print(self.design_dict)
+            self.set_inputs()
+
+
 
     def set_inputs(self):
         option_list = self.input_values()
@@ -458,7 +477,7 @@ class BeamCoverPlateBolted(BeamCoverPlate):
             self.design_dict[KEY_FLANGEPLATE_PREFERENCES]='Outside'
         elif pref==2:
             print(Fore.GREEN + '2. Outside + Inside')
-            self.design_dict[KEY_FLANGEPLATE_PREFERENCES]='Outside+ Inside'
+            self.design_dict[KEY_FLANGEPLATE_PREFERENCES]='Outside + Inside'
         else:
             print("Invalid Input")
             self.setConnectorFlangeSplice()

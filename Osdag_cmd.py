@@ -30,8 +30,8 @@ class Osdag():
         if(int(input())==1):
             self.select_module()
         else:
-
-            path = r"C:\Users\sagar\OneDrive\Desktop\fin_platedesign.xlsx"
+            print("Enter Path : ")
+            path = input()
             Workbook(path)
     def select_module(self):
         all_modules = {'Base Plate': BasePlateConnection, 'Beam Coverplate  Weld Connection': BeamCoverPlateWeld,

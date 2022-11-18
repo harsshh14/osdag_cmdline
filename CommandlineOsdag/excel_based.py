@@ -3,15 +3,37 @@ from pathlib import Path
 import pandas as pd
 from colorama import Fore
 from CommandlineOsdag.FinPlate import FinPlate
+from CommandlineOsdag.common_fn import *
+from CommandlineOsdag.EndPlate import EndPlate
+from CommandlineOsdag.ColumnCoverPlate import BeamCoverPlateBolted
 class Workbook():
     def __init__(self,filepath):
         df = pd.DataFrame(pd.read_excel(filepath,header=[0,1,2]))
         df.dropna()
+        print(df.head(1))
         df.values.astype(str)
         self.total_records=[]
         for index,series in df.iterrows():
-            self.total_records.append(FinPlate(0,series))
+            module = getModule(series)
+            if module=="FinPlate":
+                self.total_records.append(FinPlate(0,series))
+            elif module=="EndPlate":
+                pass
+                # self.total_records.append(EndPlate(series))
+            elif module=="BBCoverPlateBolted":
+                self.total_records.append(BeamCoverPlateBolted(0,series))
+
         self.design_statuses = [record.design_status for record in self.total_records]
+        # Print design Status
+
+        print(Fore.LIGHTMAGENTA_EX + '----------------------------------------------------')
+        for i,v in enumerate(self.total_records):
+            if v.design_status:
+                print(Fore.GREEN + str(i) +". " + v.module_name() +  " Design is Successful")
+            else:
+                print(Fore.RED + str(i) +". " + v.module_name() +  " Design is Not Successful")
+
+
         self.file_name=["report"+str(i) for i in range(len(self.total_records))]
         self.output()
 
@@ -62,8 +84,8 @@ class Workbook():
             self.output()
 
     def show_outputs(self):
-        x = list(map(FinPlate.show_output,self.total_records))
-        print(x)
+        for i in self.total_records:
+            i.show_output()
     def design_reportInput(self):
         self.companyName = input(Fore.BLUE+'Enter Company Name (Leave Empty if want to): ')
         self.companyLogo = input(Fore.BLUE+'Enter Path of Company Logo (Leave Empty if want to): ')
@@ -75,8 +97,6 @@ class Workbook():
         self.Client = input(Fore.BLUE+'Enter Client Name (Leave Empty if want to): ')
 
         # filename = input(Fore.BLUE+'Enter File Path with name to save (Leave Empty if want to): ')
-
-
 
     def design_popup(self,design_status,filename):
         popup_summary={}
@@ -113,16 +133,17 @@ class Workbook():
         popup_summary['logger_messages']=''
         return popup_summary
     def show_design_dicts(self):
-        x = list(map(FinPlate.show_design_dict,self.total_records))
-        print(x)
+        for i in self.total_records:
+            i.show_design_dict()
 
     def save_output_to_excels(self):
-        print(
-            Fore.YELLOW+"Enter File Path"
-        )
-        file_path= r'C:\Users\sagar\OneDrive\Desktop\batch\abd.xlsx'
-        seriesOutput = [map for map in self.apply(FinPlate.return_output,self.total_records)]
+        print(Fore.YELLOW+"Enter File Path: ")
+        file_path= input()
+        seriesOutput = []
 
+        for i in self.total_records:
+            seriesOutput.append(i.return_output())
+        print(seriesOutput)
         df = pd.concat(seriesOutput)
         df.to_excel(file_path)
 

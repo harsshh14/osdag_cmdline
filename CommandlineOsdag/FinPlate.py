@@ -6,7 +6,7 @@ import prettytable
 import colorama
 from colorama import Fore
 from CommandlineOsdag.design_type_v2.connection.fin_plate_connection import FinPlateConnection
-
+from CommandlineOsdag.common_fn import *
 from Common import *
 from utils.common.other_standards import PATH_TO_DATABASE
 import pandas as pd
@@ -23,6 +23,7 @@ class FinPlate(FinPlateConnection):
             self.set_inputs()
             self.output()
         else:
+            self.design_dict['Module']=self.module
             self.connectivity=getConnectivty(series)
             self.material=getMaterial(series)
             self.BeamSection = getSupportedSectionDesignation(series)
@@ -36,7 +37,6 @@ class FinPlate(FinPlateConnection):
             self.setConnectivty()
             self.setMemberSupportingDesignation()
             self.setmembersupportedDesignation()
-            self.setPlateThickness()
             self.setConnectorPlateThickness()
             self.setShear()
             self.setAxial()
@@ -147,16 +147,10 @@ class FinPlate(FinPlateConnection):
     def setBoltGrade(self):
         if type(self.bolt_grade)==list:
             self.design_dict['Bolt.Grade']=self.bolt_grade
-        else:
-
-            self.design_dict['Bolt.Grade'] = [str(self.bolt_grade)]
 
     def setBoltDiameter(self ):
         if type(self.bolt_diameter)==list:
             self.design_dict['Bolt.Diameter'] = self.bolt_diameter
-        else:
-            self.design_dict['Bolt.Diameter'] = [str(self.bolt_diameter)]
-
     def setBoltType(self):
         self.design_dict['Bolt.Type'] = self.bolt_type
 
@@ -167,12 +161,11 @@ class FinPlate(FinPlateConnection):
         print(Fore.GREEN+"Enter Plate Thickness (If want to select all, enter 'All', else enter them in space separated manner)")
         plate_thickness = list(input(Fore.BLUE+'Enter Plate Thickness: ').split())
         if plate_thickness[0] == 'All' or plate_thickness[0] == 'all':
-            self.plate_thickness = plate_thickness
+            self.plate_thickness = PLATE_THICKNESS_SAIL
 
             def removeTuple(s):
                 return s[0]
 
-            self.setPlateThickness()
             self.setConnectorPlateThickness()
 
         else:
@@ -183,16 +176,13 @@ class FinPlate(FinPlateConnection):
                     return
             self.plate_thickness = plate_thickness
             self.setConnectorPlateThickness()
-            self.setPlateThickness()
 
     def setConnectorPlateThickness(self):
 
-        self.design_dict['Connector.Plate.Thickness_List'] = [str(self.plate_thickness)]
+        self.design_dict['Connector.Plate.Thickness_List'] = self.plate_thickness
 
 
 
-    def setPlateThickness(self):
-        self.design_dict['Plate.Thickness_List'] = self.plate_thickness
     def design_pref(self):
         option_list = self.input_values()
         new_list = self.customized_input()
@@ -735,6 +725,7 @@ class FinPlate(FinPlateConnection):
                 tabu.add_row([Fore.YELLOW+str(output[1]),Fore.YELLOW+str(output[3])])
         print(tabu)
     def return_output(self):
+
         outputs= self.output_values(self.design_status)
         print(outputs)
         output_series = pd.Series(outputs)
@@ -786,123 +777,3 @@ class FinPlate(FinPlateConnection):
 
 
 
-def getModule(series):
-    return series['Module'][0]
-def read_series(self,series):
-    diction = {}
-    if getModule(series)=='FinPlate':
-        diction['Module']='Fin Plate Connection'
-#  create design dictionary
-def getConnectivty(series: pd.Series):
-    return series['Connectivity'][0]
-
-def getEndPlateType(self,series: pd.Series):
-    return series['EndPlateType'][0]
-
-def getConnectionLocation(self,series: pd.Series):
-    return series['Connection Location'][0]
-
-def getMaterial(series: pd.Series):
-    return series['Material'][0]
-
-def getDesignation(series):
-    return series['Member']['Section Size'][0]
-
-def getSupportingSectionDesignation(series):
-    return series['Member']['Column Section / Primary Beam']['Designation']
-
-def getSupportingSectionMaterial(series):
-    return series['Member']['Column Section / Primary Beam']['Material'][0]
-
-def getSupportedSectionDesignation(series):
-    return series['Member']['Beam Section / Secondary Beam']['Designation']
-
-def getSupportedSectionMaterial(series):
-    return series['Member']['Beam Section / Secondary Beam']['Material'][0]
-
-def getLength(series):
-    return series['Member']['Length'][0]
-
-def getProfile(series):
-    return series['Member']['Profile'][0]
-
-def getLength_zz(series):
-    return series['Member']['Length_zz'][0]
-
-def getLength_yy(series):
-    return series['Member']['Length_yy'][0]
-
-def getShear(series):
-    return series['Load']['Shear (kN)'][0]
-
-def getAxial(series):
-    return series['Load']['Axial (kN)'][0]
-
-def getMoment(series):
-    return series['Load']['Moment (kN)'][0]
-
-def getBoltDiameter(series):
-    return series['Bolt']['Available Diameters (mm)'][0]
-
-def getBoltType(series):
-    return series['Bolt']['Type'][0]
-
-def getGrade(series):
-    return series['Bolt']['Grade'][0]
-
-def getBolt_Hole_Type(series):
-    return series['Bolt']['Bolt_Hole_Type'][0]
-
-def getSlip_Factor(series):
-    return series['Bolt']['Slip_Factor'][0]
-
-def isPreTensed(series):
-    return series['Bolt']['Is pre-tensioned'][0]
-
-def getConnectorMaterial(series):
-    return series['Connector']['Material'][0]
-
-def getConnectorPlate(series):
-    return series['Connector']['Plate'][0]
-
-def getConnectorFlange(series):
-    return series['Connector']['Flang_Splice'][0]
-
-def getConnectorWeb(series):
-    return series['Connector']['Web_Splice'][0]
-
-def getConnectorTopAngle(series):
-    return series['Connector']['Top_Angle'][0]
-
-def getWeldType(series):
-    return series['Weld']['Type'][0]
-
-def getWeldFab(series):
-    return series['Weld']['Fab'][0]
-
-def getWeldMaterial_gradeOverwrite(series):
-    return series['Weld']['Material_Grade_Overwrite'][0]
-
-def getDetailingCorrosive_Influences(series):
-    return series['Detailing']['Corrosive_Influences'][0]
-
-def getDetailingEdge_Type(series):
-    return series['Detailing']['Edge_Type'][0]
-
-def getDetailingGap(series):
-    return series['Detailing']['Gap'][0]
-
-def getDesignMethod(series):
-    return series['Design']['Design_Method'][0]
-
-def supportConditionsEnd1ZZ(series):
-    return series['Support conditions']['End 1-ZZ'][0]
-
-def supportConditionsEnd2ZZ(series):
-    return series['Support conditions']['End 2-ZZ'][0]
-
-def supportConditionsEnd1YY(series):
-    return series['Support conditions']['End 1-YY'][0]
-
-def supportConditionsEndYY(series):
-    return series['Support conditions']['End 2-YY'][0]
