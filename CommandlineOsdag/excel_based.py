@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -8,22 +9,27 @@ from CommandlineOsdag.EndPlate import EndPlate
 from CommandlineOsdag.ColumnCoverPlate import BeamCoverPlateBolted
 class Workbook():
     def __init__(self,filepath):
-        df = pd.DataFrame(pd.read_excel(filepath,header=[0,1,2]))
-        df.dropna()
-        print(df.head(1))
-        df.values.astype(str)
-        self.total_records=[]
-        for index,series in df.iterrows():
-            module = getModule(series)
-            if module=="FinPlate":
-                self.total_records.append(FinPlate(0,series))
-            elif module=="EndPlate":
-                pass
-                # self.total_records.append(EndPlate(series))
-            elif module=="BBCoverPlateBolted":
-                self.total_records.append(BeamCoverPlateBolted(0,series))
+        try:
 
-        self.design_statuses = [record.design_status for record in self.total_records]
+            df = pd.DataFrame(pd.read_excel(filepath,header=[0,1,2]))
+            df.dropna()
+            print(df.head(1))
+            df.values.astype(str)
+            self.total_records=[]
+            for index,series in df.iterrows():
+                module = getModule(series)
+                if module=="FinPlate":
+                    self.total_records.append(FinPlate(0,series))
+                elif module=="EndPlate":
+                    pass
+                    # self.total_records.append(EndPlate(series))
+                elif module=="BBCoverPlateBolted":
+                    self.total_records.append(BeamCoverPlateBolted(0,series))
+
+            self.design_statuses = [record.design_status for record in self.total_records]
+        except:
+            print(Fore.RED+"Invalid Data Filled in Sheet")
+            return
         # Print design Status
 
         print(Fore.LIGHTMAGENTA_EX + '----------------------------------------------------')
@@ -49,36 +55,43 @@ class Workbook():
         print(Fore.GREEN + "Select Output")
         print(Fore.GREEN + '1.', 'Show Output')
         print(Fore.GREEN + '2.', 'Save Design Report')
-        print(Fore.GREEN + '3.', 'Save Output to Excel')
-        print(Fore.GREEN + '4.', 'Show Design Dictionary')
-        print(Fore.GREEN + '5.', 'Exit')
+        print(Fore.GREEN + '3.', 'Show Design Dictionary')
+        print(Fore.GREEN + '4.', 'Exit')
         output = input(Fore.BLUE + 'Enter Output: ')
         if output == '1':
-            self.show_outputs()
-            self.output()
+            try:
+
+                self.show_outputs()
+                self.output()
+            except:
+                print(Fore.RED+"Invalid Output")
+                self.output()
             return
         elif output == '2':
-            print(Fore.YELLOW+'Enter File Path to Save: ')
-            file_path=input()
-            self.design_reportInput()
-            filepath = Path(file_path)
-            filepath.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                print(Fore.YELLOW+'Enter File Path to Save: ')
+                file_path=input()
+                self.design_reportInput()
+                filepath = Path(file_path)
+                filepath.parent.mkdir(parents=True, exist_ok=True)
+
+                for i in range(len(self.total_records)):
+                    self.total_records[i].save_design(
+                        self.design_popup(self.design_statuses[i], file_path + self.file_name[i]))
+                self.output()
+                return
+            except:
+                print(Fore.RED+"Invalid File Path")
+                self.output()
 
 
-            for i in range(len(self.total_records)):
-                self.total_records[i].save_design(self.design_popup(self.design_statuses[i],file_path+self.file_name[i]))
-            self.output()
-            return
+
         elif output == '3':
-            self.save_output_to_excels()
-            self.output()
-            return
-        elif output == '4':
             self.show_design_dicts()
             self.output()
             return
-        elif output=='5':
-            return
+        elif output=='4':
+            sys.exit(0)
         else:
             print(Fore.RED + 'Invalid Input')
             self.output()
@@ -137,15 +150,24 @@ class Workbook():
             i.show_design_dict()
 
     def save_output_to_excels(self):
-        print(Fore.YELLOW+"Enter File Path: ")
-        file_path= input()
-        seriesOutput = []
+        try:
+            print(Fore.YELLOW+'Enter File Path to Save: ')
+            file_path=input()
+        except:
+            print(Fore.RED+"Invalid File Path")
+            self.output()
 
-        for i in self.total_records:
-            seriesOutput.append(i.return_output())
-        print(seriesOutput)
-        df = pd.concat(seriesOutput)
-        df.to_excel(file_path)
+        seriesOutput = []
+        try:
+            for i in self.total_records:
+                seriesOutput.append(i.return_output())
+            print(seriesOutput)
+            df = pd.concat(seriesOutput)
+            df.to_excel(file_path)
+        except:
+            print(Fore.RED+"Operation Not Completed")
+            self.output()
+
 
 
 

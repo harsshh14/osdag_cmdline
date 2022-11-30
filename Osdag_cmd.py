@@ -30,9 +30,15 @@ class Osdag():
         if(int(input())==1):
             self.select_module()
         else:
-            print("Enter Path : ")
-            path = input()
-            Workbook(path)
+            try:
+
+                print("Enter Path : ")
+                path = input()
+                Workbook(path)
+            except:
+                print(Fore.RED+"Invalid Path")
+                self.__init__()
+
     def select_module(self):
         all_modules = {'Base Plate': BasePlateConnection, 'Beam Coverplate  Weld Connection': BeamCoverPlateWeld,
                        'Beam Coverplate Connection': BeamCoverPlate,
