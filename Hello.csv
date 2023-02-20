@@ -1,0 +1,26 @@
+Module,Fin Plate Connection,Bolt.Diameter,36
+Connectivity,Column Flange-Beam Web,Bolt.Grade_Provided,5.6
+Member.Supporting_Section.Designation,HB 450,Bolt.Shear,68.63
+Member.Supported_Section.Designation,MB 350,Bolt.Bearing,
+Material,E 250 (Fe 410 W)B,Bolt.Capacity,68.63
+Load.Shear,25,Bolt.Force (kN),47.47
+Load.Axial,15,Bolt.Line,1
+Bolt.Diameter,"['36', ' 16']",Bolt.OneLine,2
+Bolt.Type,Friction Grip Bolt,Bolt.Pitch,90
+Bolt.Grade,"['5.8', ' 5.6', ' 3.6']",Bolt.EndDist,70
+Connector.Plate.Thickness_List,"['10', ' 12', ' 16']",Bolt.Gauge,0.0
+Member.Supporting_Section.Material,E 250 (Fe 410 W)B,Bolt.EdgeDist,70
+Member.Supported_Section.Material,E 250 (Fe 410 W)B,Plate.Thickness,10
+Bolt.TensionType,Pretensioned,Plate.Height,230.0
+Bolt.Bolt_Hole_Type,Standard,Plate.Length,150.0
+Bolt.Slip_Factor,0.3,Plate.Shear,301.8
+Weld.Fab,Shop Weld,Plate.Rupture,467.4
+Weld.Material_Grade_OverWrite,410,Plate.BlockShear,332.08
+Detailing.Edge_type,Sheared or hand flame cut,Plate.TensionYield,522.73
+Detailing.Gap,10,Plate.TensionRupture,563.83
+Detailing.Corrosive_Influences,No,Plate.BlockShearAxial,334.25
+Design.Design_Method,Limit State Design,Plate.MomDemand,3.2
+Connector.Material,E 250 (Fe 410 W)B,Plate.MomCapacity,30.06
+,,Weld.Size,5
+,,Weld.Strength,662.8
+,,Weld.Stress,249.58
