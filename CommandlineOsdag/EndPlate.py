@@ -625,7 +625,7 @@ class EndPlate(EndPlateConnection):
             self.outputs()
             return
         elif output == '3':
-            # self.save_output_to_excel()
+            self.save_output_to_excel()
             self.outputs()
             return
         elif output == '4':
@@ -700,6 +700,42 @@ class EndPlate(EndPlateConnection):
         popup_summary['logger_messages']=''
 
         EndPlateConnection.save_design(self,popup_summary)
+    def save_output_to_excel(self):
+        print("Enter File Name : ")
+        name = input()
+        import pandas as pd
+        df = pd.DataFrame(self.output_values(self.design_status))
+        out_list = self.output_values( self.design_status)
+        in_list = self.design_inputs.items()
+        to_Save = {}
+        flag = 0
+        for option in out_list:
+            if option[0] is not None and option[2] == TYPE_TEXTBOX:
+                to_Save[option[0]] = option[3]
+                if str(option[3]):
+                    flag = 1
+            if option[2] == TYPE_OUT_BUTTON:
+                tup = option[3]
+                fn = tup[1]
+                for item in fn(self.design_status):
+                    lable = item[0]
+                    value = item[3]
+                    if lable != None and value != None:
+                        to_Save[lable] = value
+        df = pd.DataFrame(self.design_inputs.items())
+        # df.columns = ['label','value']
+        # columns = [('input values','label'),('input values','value')]
+        # df.columns = pd.MultiIndex.from_tuples(columns)
+
+        df1 = pd.DataFrame(to_Save.items())
+        # df1.columns = ['label','value']
+        # df1.columns = pd.MultiIndex.from_product([["Output Values"], df1.columns])
+
+        bigdata = pd.concat([df, df1], axis=1)
+        try:
+            bigdata.to_csv(name + ".csv", index=False, header=None)
+        except:
+            print("Wrong Path")
 
 
 

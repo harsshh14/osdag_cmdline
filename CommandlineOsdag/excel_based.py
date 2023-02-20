@@ -6,10 +6,12 @@ from colorama import Fore
 from CommandlineOsdag.FinPlate import FinPlate
 from CommandlineOsdag.common_fn import *
 from CommandlineOsdag.EndPlate import EndPlate
+from Common import *
 from CommandlineOsdag.ColumnCoverPlate import BeamCoverPlateBolted
 class Workbook():
+
     def __init__(self,filepath):
-        try:
+        if True:
 
             df = pd.DataFrame(pd.read_excel(filepath,header=[0,1,2]))
             df.dropna()
@@ -18,6 +20,7 @@ class Workbook():
             self.total_records=[]
             for index,series in df.iterrows():
                 module = getModule(series)
+                print(series.tolist())
                 if module=="FinPlate":
                     self.total_records.append(FinPlate(0,series))
                 elif module=="EndPlate":
@@ -27,9 +30,7 @@ class Workbook():
                     self.total_records.append(BeamCoverPlateBolted(0,series))
 
             self.design_statuses = [record.design_status for record in self.total_records]
-        except:
-            print(Fore.RED+"Invalid Data Filled in Sheet")
-            return
+
         # Print design Status
 
         print(Fore.LIGHTMAGENTA_EX + '----------------------------------------------------')
@@ -56,7 +57,8 @@ class Workbook():
         print(Fore.GREEN + '1.', 'Show Output')
         print(Fore.GREEN + '2.', 'Save Design Report')
         print(Fore.GREEN + '3.', 'Show Design Dictionary')
-        print(Fore.GREEN + '4.', 'Exit')
+        print(Fore.GREEN + '4', 'Save Output to excel')
+        print(Fore.GREEN + '5.', 'Exit')
         output = input(Fore.BLUE + 'Enter Output: ')
         if output == '1':
             try:
@@ -91,7 +93,11 @@ class Workbook():
             self.output()
             return
         elif output=='4':
-            sys.exit(0)
+            self.save_output_to_excel()
+            self.output()
+        elif output=='5':
+            sys.exit()
+
         else:
             print(Fore.RED + 'Invalid Input')
             self.output()
@@ -149,24 +155,42 @@ class Workbook():
         for i in self.total_records:
             i.show_design_dict()
 
-    def save_output_to_excels(self):
-        try:
-            print(Fore.YELLOW+'Enter File Path to Save: ')
-            file_path=input()
-        except:
-            print(Fore.RED+"Invalid File Path")
-            self.output()
+    def save_output_to_excel(self):
+        for i in self.total_records:
 
-        seriesOutput = []
-        try:
-            for i in self.total_records:
-                seriesOutput.append(i.return_output())
-            print(seriesOutput)
-            df = pd.concat(seriesOutput)
-            df.to_excel(file_path)
-        except:
-            print(Fore.RED+"Operation Not Completed")
-            self.output()
+            print("Enter File Name : ")
+            name = input()
+            import pandas as pd
+            out_list = i.output_values(i.design_status)
+            in_list = i.design_inputs.items()
+            to_Save = {}
+            flag = 0
+            for option in out_list:
+                if option[0] is not None and option[2] == TYPE_TEXTBOX:
+                    to_Save[option[0]] = option[3]
+                    if str(option[3]):
+                        flag = 1
+                if option[2] == TYPE_OUT_BUTTON:
+                    tup = option[3]
+                    fn = tup[1]
+                    for item in fn(i.design_status):
+                        lable = item[0]
+                        value = item[3]
+                        if lable != None and value != None:
+                            to_Save[lable] = value
+            df = pd.DataFrame(i.design_inputs.items())
+            # df.columns = ['label','value']
+            # columns = [('input values','label'),('input values','value')]
+            # df.columns = pd.MultiIndex.from_tuples(columns)
+
+            df1 = pd.DataFrame(to_Save.items())
+            # df1.columns = ['label','value']
+            # df1.columns = pd.MultiIndex.from_product([["Output Values"], df1.columns])
+
+            bigdata = pd.concat([df, df1], axis=1)
+            bigdata.to_csv(name + ".csv", index=False, header=None)
+
+
 
 
 

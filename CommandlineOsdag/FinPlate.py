@@ -54,9 +54,9 @@ class FinPlate(FinPlateConnection):
     def set_factored_loads(self):
 
 
-        self.sherd_loads = input("Enter Shear Load")
+        self.sherd_loads = input("Enter Shear Load :")
         self.setShear()
-        self.axial_force = input("Enter Axial Force")
+        self.axial_force = input("Enter Axial Force :")
         self.setAxial()
 
     def setAxial(self):
@@ -498,7 +498,6 @@ class FinPlate(FinPlateConnection):
         CONN_CFBW = 'Column Flange-Beam Web'
         CONN_CWBW = 'Column Web-Beam Web'
         CONN_BB = 'Beam-Beam'
-        print(Fore.GREEN+"Select Connectivity")
         print(Fore.GREEN+'1.', CONN_CFBW)
         print(Fore.GREEN+'2.', CONN_CWBW)
         print(Fore.GREEN+'3.', CONN_BB)
@@ -702,7 +701,7 @@ class FinPlate(FinPlateConnection):
             self.output()
             return
         elif output == '3':
-            # self.save_output_to_excel()
+            self.save_output_to_excel()
             self.output()
             return
         elif output == '4':
@@ -710,7 +709,8 @@ class FinPlate(FinPlateConnection):
             self.output()
             return
         elif output=='5':
-            return
+            import sys
+            sys.exit(0)
         else:
             print(Fore.RED + 'Invalid Input')
             self.output()
@@ -775,5 +775,39 @@ class FinPlate(FinPlateConnection):
         return popup_summary
 
 
+    def save_output_to_excel(self):
+        print("Enter File Name : ")
+        name = input()
+        import pandas as pd
+        df = pd.DataFrame(self.output_values(self.design_status))
+        out_list = self.output_values( self.design_status)
+        in_list = self.design_inputs.items()
+        to_Save = {}
+        flag = 0
+        for option in out_list:
+            if option[0] is not None and option[2] == TYPE_TEXTBOX:
+                to_Save[option[0]] = option[3]
+                if str(option[3]):
+                    flag = 1
+            if option[2] == TYPE_OUT_BUTTON:
+                tup = option[3]
+                fn = tup[1]
+                for item in fn(self.design_status):
+                    lable = item[0]
+                    value = item[3]
+                    if lable != None and value != None:
+                        to_Save[lable] = value
+        df = pd.DataFrame(self.design_inputs.items())
+        # df.columns = ['label','value']
+        # columns = [('input values','label'),('input values','value')]
+        # df.columns = pd.MultiIndex.from_tuples(columns)
 
+        df1 = pd.DataFrame(to_Save.items())
+        # df1.columns = ['label','value']
+        # df1.columns = pd.MultiIndex.from_product([["Output Values"], df1.columns])
 
+        bigdata = pd.concat([df, df1], axis=1)
+        try:
+            bigdata.to_csv(name + ".csv", index=False, header=None)
+        except:
+            print("Wrong Path")
