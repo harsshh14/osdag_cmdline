@@ -124,3 +124,5 @@ def supportConditionsEnd1YY(series):
 
 def supportConditionsEndYY(series):
     return series['Support conditions']['End 2-YY'][0]
+
+
